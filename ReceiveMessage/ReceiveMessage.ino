@@ -19,10 +19,12 @@ int relay7off = 0;
 int relay7on = 0;
 int relay8off = 0;
 int relay8on = 0;
+int StatusRelay = 0;
 unsigned char _rx_buffer[2048];
+int relaystatus[8];
 void gsmSendTextMessage(HardwareSerial* gsm_uart, String phone_no, String sms_text);
 bool gsmSendCommandWithTimeout(HardwareSerial* gsm_uart, String at_command, unsigned int timeout);
-void processdata(String Text, byte rel, byte data);
+void processdata(String Text, byte rel, byte rell, byte data);
 
 void Readdata()
 {
@@ -59,15 +61,8 @@ void setup()
   Readdata();
   SSerial2.println("AT+CMGL=\"ALL\"");
   Readdata();
-
-  //  SSerial2.println("AT+QIMODE=0");
-  //  Readdata();
   SSerial2.println("AT+QINDI=1");
   Readdata();
-  //  SSerial2.println("AT+QIMODE=1");
-  //  Readdata();
-  //  SSerial2.println("AT+QIMODE=1");
-  //  Readdata();
   SSerial2.println("AT+QIMODE=1");
   Readdata();
   SSerial2.println("AT+CMGF=1");
@@ -76,12 +71,10 @@ void setup()
   Readdata();
   SSerial2.println("AT+QMIC=2,15");
   Readdata();
-  SSerial2.println(" AT+CMUT=0");
-  Readdata();
-  SSerial2.println(" AT+CMUT?");
-  Readdata();
   SSerial2.println(" AT&W0");
   Readdata();
+
+  relaystatus[0] = 0; relaystatus[1] = 0; relaystatus[2] = 0; relaystatus[3] = 0; relaystatus[4] = 0; relaystatus[5] = 0; relaystatus[6] = 0; relaystatus[7] = 0;
 }
 
 void gsmSendTextMessage(HardwareSerial * gsm_uart, String phone_no, String  sms_text)
@@ -98,10 +91,10 @@ bool gsmSendCommandWithTimeout(HardwareSerial * gsm_uart, String at_command, uns
   return true;
 }
 
-void processdata(String Text, byte rel, byte data)
+void processdata(String Text, byte rel, byte rell, byte data)
 {
   delay(300);
-  Serial3.write(0x55); Serial3.write(0x56); Serial3.write(0x00); Serial3.write(0x00); Serial3.write(0x00); Serial3.write(rel); Serial3.write(0x03); Serial3.write(data);
+  Serial3.write(0x55); Serial3.write(0x56); Serial3.write(0x00); Serial3.write(0x00); Serial3.write(0x00); Serial3.write(rel); Serial3.write(rell); Serial3.write(data);
   SSerial2.println("AT+CMGS=\"+4917676552098\"" );
   delay(300);
   SSerial2.println(Text);
@@ -150,57 +143,146 @@ void loop()
     relay7off = testc.indexOf("Relay7-OFF");
     relay8on = testc.indexOf("Relay8-ON");
     relay8off = testc.indexOf("Relay8-OFF");
+    StatusRelay = testc.indexOf("Status-Relay");
   }
 
 
   if (relay1on > 80)  {
-    processdata("Relay1-ON", 0x01, 0xAF);
+    processdata("Relay1-ON", 0x01, 0x01, 0xAD);
+    relaystatus[0] = 1;
   }
   if (relay1off > 80)  {
-    processdata("Relay1-OFF", 0x01, 0xAF);
+    processdata("Relay1-OFF", 0x01, 0x02, 0xAE);
+    relaystatus[0] = 0;
   }
   if (relay2on > 80)  {
-    processdata("Relay2-ON", 0x02, 0xB0);
+    processdata("Relay2-ON", 0x02, 0x01, 0xAE);
+    relaystatus[1] = 1;
   }
   if (relay2off > 80)  {
-    processdata("Relay2-OFF", 0x02, 0xB0);
+    processdata("Relay2-OFF", 0x02, 0x02, 0xAF);
+    relaystatus[1] = 0;
   }
   if (relay3on > 80)  {
-    processdata("Relay3-ON", 0x03, 0xB1);
+    processdata("Relay3-ON", 0x03, 0x01, 0xAF);
+    relaystatus[2] = 1;
   }
   if (relay3off > 80)  {
-    processdata("Relay3-OFF", 0x03, 0xB1);
+    processdata("Relay3-OFF", 0x03, 0x02, 0xB0);
+    relaystatus[2] = 0;
   }
   if (relay4on > 80)  {
-    processdata("Relay4-ON", 0x04, 0xB2);
+    processdata("Relay4-ON", 0x04, 0x01, 0xB0);
+    relaystatus[3] = 1;
   }
   if (relay4off > 80)  {
-    processdata("Relay4-OFF", 0x04, 0xB2);
+    processdata("Relay4-OFF", 0x04, 0x02, 0xB1);
+    relaystatus[3] = 0;
   }
   if (relay5on > 80)  {
-    processdata("Relay5-ON", 0x05, 0xB3);
+    processdata("Relay5-ON", 0x05, 0x01, 0xB1);
+    relaystatus[4] = 1;
   }
   if (relay5off > 80)  {
-    processdata("Relay5-OFF", 0x05, 0xB3);
+    processdata("Relay5-OFF", 0x05, 0x02, 0xB2);
+    relaystatus[4] = 0;
   }
   if (relay6on > 80)  {
-    processdata("Relay6-ON", 0x06, 0xB4);
+    processdata("Relay6-ON", 0x06, 0x01, 0xB2);
+    relaystatus[5] = 1;
   }
   if (relay6off > 80)  {
-    processdata("Relay6-OFF", 0x06, 0xB4);
+    processdata("Relay6-OFF", 0x06, 0x02, 0xB3);
+    relaystatus[5] = 0;
   }
   if (relay7on > 80)  {
-    processdata("Relay7-ON", 0x07, 0xB5);
+    processdata("Relay7-ON", 0x07, 0x01, 0xB3);
+    relaystatus[6] = 1;
   }
   if (relay7off > 80)  {
-    processdata("Relay7-OFF", 0x07, 0xB5);
+    processdata("Relay7-OFF", 0x07, 0x02, 0xB4);
+    relaystatus[6] = 0;
   }
   if (relay8on > 80)  {
-    processdata("Relay8-ON", 0x08, 0xB6);
+    processdata("Relay8-ON", 0x08, 0x01, 0xB4);
+    relaystatus[7] = 1;
   }
   if (relay8off > 80)  {
-    processdata("Relay8-OFF", 0x08, 0xB6);
+    processdata("Relay8-OFF", 0x08, 0x02, 0xB5);
+    relaystatus[7] = 0;
   }
+  if (StatusRelay > 80)
+  {
+    delay(300);
+    SSerial2.println("AT+CMGS=\"+4917676552098\"" );
+    if (relaystatus[0] == 1)
+    {
+      SSerial2.println("Relay1-ON");
+    }
+    else
+    {
+      SSerial2.println("Relay1-OFF");
+    }
+    if (relaystatus[1] == 1)
+    {
+      SSerial2.println("Relay2-ON");
+    }
+    else
+    {
+      SSerial2.println("Relay2-OFF");
+    }
+    if (relaystatus[2] == 1)
+    {
+      SSerial2.println("Relay3-ON");
+    }
+    else
+    {
+      SSerial2.println("Relay3-OFF");
+    }
+    if (relaystatus[3] == 1)
+    {
+      SSerial2.println("Relay4-ON");
+    }
+    else
+    {
+      SSerial2.println("Relay4-OFF");
+    }
+    if (relaystatus[4] == 1)
+    {
+      SSerial2.println("Relay5-ON");
+    }
+    else
+    {
+      SSerial2.println("Relay5-OFF");
+    }
+    if (relaystatus[5] == 1)
+    {
+      SSerial2.println("Relay6-ON");
+    }
+    else
+    {
+      SSerial2.println("Relay6-OFF");
+    }
+    if (relaystatus[6] == 1)
+    {
+      SSerial2.println("Relay7-ON");
+    }
+    else
+    {
+      SSerial2.println("Relay7-OFF");
+    }
+    if (relaystatus[7] == 1)
+    {
+      SSerial2.println("Relay8-ON");
+    }
+    else
+    {
+      SSerial2.println("Relay8-OFF");
+    } 
+    gsmSendTextMessage(&SSerial2, "017676552098", "OK");
+    delay(300);
+  }
+
   resp[resp.length() - 1] = '\0';
   int numbermatch = resp.indexOf("+4917676552098");
 
