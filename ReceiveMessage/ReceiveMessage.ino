@@ -3,6 +3,9 @@ String resp = "";
 int gt = 4;
 #include "HardwareSerial.h"
 #define SSerial2 Serial2
+int Pin8Dail = 8;
+int Pin9Answer = 9;
+
 int relay1off = 0;
 int relay1on = 0;
 int relay2off = 0;
@@ -41,6 +44,12 @@ void Readdata()
 
 void setup()
 {
+  pinMode(Pin8Dail, INPUT);
+  pinMode(Pin9Answer, INPUT);
+
+  Serial.println(digitalRead(Pin8Dail));
+  Serial.println(digitalRead(Pin9Answer));
+
   Serial3.begin(9600);
 
   Serial.begin(115200);
@@ -71,6 +80,7 @@ void setup()
   Readdata();
   SSerial2.println("AT+QMIC=2,15");
   Readdata();
+  SSerial2.println("ATS0=0");
   SSerial2.println(" AT&W0");
   Readdata();
 
@@ -104,13 +114,26 @@ void processdata(String Text, byte rel, byte rell, byte data)
 //////////////////////////////////////////////////
 void loop()
 {
+  Serial.println(digitalRead(Pin8Dail));
+  Serial.println(digitalRead(Pin9Answer));
+  if (digitalRead(Pin8Dail) == 1)
+  {
+    SSerial2.println("AT+QAUDCH=2");
+    SSerial2.println("AT+QMIC=1,15");
+    SSerial2.println("ATD017676552098;");
+    // SSerial2.println("ATD015122918640;");
+  }
+  if (digitalRead(Pin9Answer) == 1)
+  {
+    SSerial2.println("ATA");
+  }
   gt++;
   String resp1 = "";
   if (gt > 9) gt = 4;
-  delay(500);
+  delay(1000);
   SSerial2.println( "AT+CMGR=" + String(gt));
   //delay(1000);
-  SSerial2.setTimeout(4000);
+  SSerial2.setTimeout(3000);
   byte byteRead;
   int rec = 0;
   String testc;
@@ -118,7 +141,7 @@ void loop()
   {
     String c;
     char c2;
-    c = SSerial2.readStringUntil(';');
+    c = SSerial2.readStringUntil("");
     c2 = SSerial2.read();
     resp += c;
     rec++;
@@ -278,7 +301,7 @@ void loop()
     else
     {
       SSerial2.println("Relay8-OFF");
-    } 
+    }
     gsmSendTextMessage(&SSerial2, "017676552098", "OK");
     delay(300);
   }
